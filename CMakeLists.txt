@@ -15,15 +15,17 @@ find_package(Qt5 COMPONENTS Widgets LinguistTools REQUIRED)
 
 
 
-set ( SOURCES main.cpp mainwindow.cpp)
+set ( SOURCES main.cpp mainwindow.cpp xmlwindow.cpp)
 
-set ( HEADERS mainwindow.h)
+set ( HEADERS mainwindow.h xmlwindow.h)
 
-set ( UIS mainwindow.ui)
+set ( UIS mainwindow.ui xmlwindow.ui)
+
+set (RES resource.qrc)
 
 
 # Translation
-set(FILES_TO_TRANSLATE ${SOURCES} ${HEADERS} ${UIS})
+set(FILES_TO_TRANSLATE ${SOURCES} ${HEADERS} ${UIS} )
 set(TS_FILES translations/EditorXML_en_US.ts)
 
 option(
@@ -44,7 +46,7 @@ endif()
 add_custom_target(translations DEPENDS ${QM_FILES})
 set_property(DIRECTORY PROPERTY CLEAN_NO_CUSTOM TRUE)
 
-add_executable(EditorXML  ${SOURCES} ${HEADERS} ${UIS})
+add_executable(EditorXML  ${SOURCES} ${HEADERS} ${UIS} ${RES})
 
 target_link_libraries(EditorXML PRIVATE Qt5::Widgets)
 
