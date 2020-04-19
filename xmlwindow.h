@@ -17,11 +17,18 @@ public:
 
     QString currentFile() { return curFile; }
     bool loadFile(const QString &fileName);
+    void newFile();
+    bool save();
+    QString userFriendlyCurrentFile();
+
+private:
+    QString strippedName(const QString &fullFileName);
 
 private:
     Ui::XMLWindow *ui;
 
     QString curFile;
+    bool isUntitled;
 };
 
 #endif // XMLWINDOW_H

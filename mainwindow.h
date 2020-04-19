@@ -32,6 +32,12 @@ private slots:
 
     void on_actionAbout_triggered();
 
+    void on_actionOpen_triggered();
+
+    void on_actionNew_triggered();
+
+    void on_actionSave_triggered();
+
 private:
 
     enum
@@ -40,10 +46,13 @@ private:
     void prependToRecentFiles(const QString &fileName);
     QMdiSubWindow *findXMLWindow(const QString &fileName) const;
     bool loadFile(const QString &fileName);
+    XMLWindow *activeXMLWindow() const;
+
 
 private:
     Ui::MainWindow *ui;
     QAction *m_apActionsRecent[enMaxRecentFiles];
+    QVector<QAction*>vecMenuWindows;
     QStringList m_listRecentFiles;
 };
 #endif // MAINWINDOW_H

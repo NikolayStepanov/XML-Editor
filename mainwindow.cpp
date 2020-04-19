@@ -60,6 +60,7 @@ MainWindow::MainWindow(QWidget *parent)
     m_listRecentFiles = settings.value("recentFiles").toStringList();
 
     updateRecentFileActions();
+
 }
 
 MainWindow::~MainWindow()
@@ -109,7 +110,35 @@ void MainWindow::updateRecentFileActions()
 
 void MainWindow::updateWindowMenu()
 {
+    if(!vecMenuWindows.isEmpty())
+    {
+        for(auto val : vecMenuWindows)
+        {
+            ui->menuWindows->removeAction(val);
+        }
+    }
 
+    QList<QMdiSubWindow *> windows = ui->mdiArea->subWindowList();
+
+    for (int i = 0; i < windows.size(); ++i) {
+        QMdiSubWindow *mdiSubWindow = windows.at(i);
+        XMLWindow *child = qobject_cast<XMLWindow *>(mdiSubWindow->widget());
+
+        QString text;
+        if (i < 9) {
+            text = tr("&%1 %2").arg(i + 1)
+                               .arg(child->userFriendlyCurrentFile());
+        } else {
+            text = tr("%1 %2").arg(i + 1)
+                              .arg(child->userFriendlyCurrentFile());
+        }
+        QAction *action = ui->menuWindows->addAction(text, mdiSubWindow, [this, mdiSubWindow]() {
+            ui->mdiArea->setActiveSubWindow(mdiSubWindow);
+        });
+        vecMenuWindows.push_back(action);
+        action->setCheckable(true);
+        action ->setChecked(child == activeXMLWindow());
+    }
 }
 
 void MainWindow::openRecentFile()
@@ -122,6 +151,8 @@ XMLWindow *MainWindow::createXMLWindows()
 {
     XMLWindow *child = new XMLWindow;
     ui->mdiArea->addSubWindow(child);
+
+    return child;
 }
 
 void MainWindow::createActions()
@@ -136,6 +167,10 @@ void MainWindow::createActions()
 
         ui->menuFile->addAction(m_apActionsRecent[i]);
     }
+
+    updateWindowMenu();
+
+    connect(ui->menuWindows, &QMenu::aboutToShow, this, &MainWindow::updateWindowMenu);
 }
 
 void MainWindow::prependToRecentFiles(const QString &fileName)
@@ -175,6 +210,12 @@ bool MainWindow::loadFile(const QString &fileName)
     return succeeded;
 }
 
+XMLWindow *MainWindow::activeXMLWindow() const
+{
+    if (QMdiSubWindow *activeSubWindow = ui->mdiArea->activeSubWindow())
+        return qobject_cast<XMLWindow *>(activeSubWindow->widget());
+    return nullptr;
+}
 
 void MainWindow::on_actionAbout_triggered()
 {
@@ -184,4 +225,24 @@ void MainWindow::on_actionAbout_triggered()
                           "At a minimum, support is required for nodes of the DocumentTypeNode, ElementNode, "
                           "and AttributeNode types, integer and string attributes. In the model, attributes must"
                           "to be children in relation to their elements."));
+}
+
+void MainWindow::on_actionOpen_triggered()
+{
+    const QString fileName = QFileDialog::getOpenFileName(this);
+    if (!fileName.isEmpty())
+        openFile(fileName);
+}
+
+void MainWindow::on_actionNew_triggered()
+{
+    XMLWindow *child = createXMLWindows();
+    child->newFile();
+    child->show();
+}
+
+void MainWindow::on_actionSave_triggered()
+{
+    if (activeXMLWindow() && activeXMLWindow()->save())
+        statusBar()->showMessage(tr("File saved"), 2000);
 }
