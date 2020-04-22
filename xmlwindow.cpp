@@ -5,6 +5,9 @@
 #include <QMessageBox>
 #include <QResizeEvent>
 #include <QSplitter>
+#include <QFileDialog>
+#include <QSaveFile>
+#include <QTextStream>
 
 XMLWindow::XMLWindow(QWidget *parent) :
     QWidget(parent),
@@ -17,6 +20,15 @@ XMLWindow::XMLWindow(QWidget *parent) :
 XMLWindow::~XMLWindow()
 {
     delete ui;
+}
+
+bool XMLWindow::write(QIODevice *device) const
+{
+    const int IndentSize = 4;
+
+    QTextStream out(device);
+    domDocument.save(out, IndentSize);
+    return true;
 }
 
 bool XMLWindow::loadFile(QIODevice *device)
@@ -52,7 +64,45 @@ void XMLWindow::newFile()
 
 bool XMLWindow::save()
 {
+    if (isUntitled) {
+        return saveAs();
+    } else {
+        return saveFile(curFile);
+    }
+}
 
+bool XMLWindow::saveAs()
+{
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Save As"),
+                                                    curFile);
+    if (fileName.isEmpty())
+        return false;
+
+    return saveFile(fileName);
+}
+
+bool XMLWindow::saveFile(const QString &fileName)
+{
+    if (fileName.isEmpty())
+        return false;
+
+    QFile file(fileName);
+    if (!file.open(QFile::WriteOnly | QFile::Text)) {
+        QMessageBox::warning(this, tr("XML editor"),
+                             tr("Cannot write file %1:\n%2.")
+                             .arg(QDir::toNativeSeparators(fileName),
+                                  file.errorString()));
+        return false;
+    }
+
+    if (!write(&file)) {
+        QMessageBox::warning(this, tr("XML editor"),
+                     tr("Cannot read file %1:\nUnknown XML ecoding error.")
+                     .arg(QDir::toNativeSeparators(fileName)));
+        return false;
+    }
+
+    return true;
 }
 
 QString XMLWindow::userFriendlyCurrentFile()

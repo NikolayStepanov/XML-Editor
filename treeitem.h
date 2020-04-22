@@ -23,15 +23,10 @@ public:
     bool removeColumns(int position, int columns); //Удалить столбцы
     bool setData(int column, const QVariant &value); //Установить данные
 
-public:
+private:
     QList <TreeItem*> m_childItems; //Список дочерних элементов
     QVector <QVariant> m_itemData; //Список данных текущего узла
     TreeItem *m_parentItem; //Ссылка на родительский узел
-
-private: //Внутреннее представление данных:
-    //QList <TreeItem*> m_childItems; //Список дочерних элементов
-
-    //TreeItem *m_parentItem; //Ссылка на родительский узел
 };
 
 #endif // TREEITEM_H

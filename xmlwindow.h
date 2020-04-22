@@ -19,9 +19,13 @@ public:
 
     QString currentFile() { return curFile; }
 
+    bool write(QIODevice *device) const;
+
     bool loadFile(QIODevice *device);
     void newFile();
     bool save();
+    bool saveAs();
+    bool saveFile(const QString &fileName);
     QString userFriendlyCurrentFile();
     void resizeEvent(QResizeEvent *event) override;
 
@@ -34,7 +38,6 @@ private:
 
 private:
     Ui::XMLWindow *ui;
-
     QString curFile;
     bool isUntitled;
     QDomDocument domDocument;

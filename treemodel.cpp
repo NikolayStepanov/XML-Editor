@@ -3,7 +3,7 @@
 TreeModel::TreeModel(const QDomDocument &doc, QObject *parent)
     : QAbstractItemModel(parent)
 {
-     //Создали корневой элемент
+    //Создали корневой элемент
     rootItem = new TreeItem({tr("Component"), tr("Value")});
     setupModelData(doc, rootItem);
 }
@@ -11,6 +11,32 @@ TreeModel::TreeModel(const QDomDocument &doc, QObject *parent)
 TreeModel::~TreeModel()
 {
     delete rootItem;
+}
+
+
+static const QString &nodeTypeName(QDomNode::NodeType nodeType) {
+    static QString Element("Element"), Attribute("Attribute"), Text("Text"),
+            CDATA("CData"), EntityReference("Entity Reference"), Entity("Entity"),
+            ProcessingInstruction("Processing Instruction"), Comment("Comment"),
+            Document("Document"), DocumentType("Document Type"),
+            DocumentFragment("DocumentFragment"), Notation("Notation"),
+            Base("Untyped?"), CharacterData("CharacterData");
+    switch(nodeType) {
+    case QDomNode::ElementNode:               return Element;
+    case QDomNode::AttributeNode:             return Attribute;
+    case QDomNode::TextNode:                  return Text;
+    case QDomNode::CDATASectionNode:          return CDATA;
+    case QDomNode::EntityReferenceNode:       return EntityReference;
+    case QDomNode::EntityNode:                return Entity;
+    case QDomNode::ProcessingInstructionNode: return ProcessingInstruction;
+    case QDomNode::CommentNode:               return Comment;
+    case QDomNode::DocumentNode:              return Document;
+    case QDomNode::DocumentTypeNode:          return DocumentType;
+    case QDomNode::DocumentFragmentNode:      return DocumentFragment;
+    case QDomNode::NotationNode:              return Notation;
+    case QDomNode::BaseNode:                  return Base;
+    case QDomNode::CharacterDataNode:         return CharacterData;
+    }
 }
 
 int TreeModel::columnCount(const QModelIndex &parent) const
@@ -139,11 +165,70 @@ bool TreeModel::removeRows(int position, int rows, const QModelIndex &parent)
 void TreeModel::traverseXmlNode(const QDomNode& node, TreeItem* parent)
 {
     QDomNode domNode = node.firstChild();
-    QDomElement domElement;
 
     tabCount++; // increase current tab count
-
     while(!(domNode.isNull()))
+    {
+        TreeItem* ptrNewNode = NULL;
+        QVector <QVariant> columnData;
+
+        switch(domNode.nodeType())
+        {
+        case QDomNode::ElementNode:{
+            QDomElement element = domNode.toElement();
+            columnData.push_back(element.tagName());
+            ptrNewNode = new TreeItem(columnData, parent);
+
+            QDomNamedNodeMap map = element.attributes();
+            for (int id = 0 ; id < map.size() ; id++ )
+            {
+                QDomNode node = map.item( id );
+                QVector <QVariant> columnData;
+
+                columnData.push_back(node.nodeName());
+                columnData.push_back(node.nodeValue());
+
+                TreeItem* ptrNewNodeAttr = new TreeItem(columnData, ptrNewNode);
+                ptrNewNode->appendChild(ptrNewNodeAttr);
+            }
+            parent->appendChild(ptrNewNode );
+        }break;
+        case QDomNode::AttributeNode:{
+            QDomAttr attr = domNode.toAttr();
+            columnData.push_back(attr.name());
+            columnData.push_back(attr.value());
+            ptrNewNode = new TreeItem(columnData, parent);
+            parent->appendChild(ptrNewNode );
+        }break;
+        case QDomNode::CDATASectionNode:{}break;
+        case QDomNode::EntityReferenceNode:{}break;
+        case QDomNode::EntityNode:{}break;
+        case QDomNode::ProcessingInstructionNode:{}break;
+        case QDomNode::TextNode:{
+            QDomText text = domNode.toText();
+            columnData.push_back("#text");
+            columnData.push_back(text.data());
+            ptrNewNode = new TreeItem(columnData, parent);
+            parent->appendChild(ptrNewNode );
+        }break;
+        case QDomNode::CommentNode:{
+            QDomComment comment = domNode.toComment();
+            columnData.push_back("#comment");
+            columnData.push_back(comment.data());
+            ptrNewNode = new TreeItem(columnData, parent);
+            parent->appendChild(ptrNewNode );
+        }break;
+        case QDomNode::DocumentNode: {}break;
+        case QDomNode::DocumentTypeNode: {}break;
+        case QDomNode::DocumentFragmentNode: {}break;
+        case QDomNode::NotationNode: {}break;
+        case QDomNode::BaseNode: {}break;
+        case QDomNode::CharacterDataNode: {}break;
+        }
+        traverseXmlNode(domNode, ptrNewNode); // recursive function
+        domNode = domNode.nextSibling();
+    }
+    /* while(!(domNode.isNull()))
     {
         TreeItem* ptrNewNode = NULL;
 
@@ -167,13 +252,13 @@ void TreeModel::traverseXmlNode(const QDomNode& node, TreeItem* parent)
                 columnData.push_back(node.nodeValue());
 
                 TreeItem* ptrNewNodeAttr = new TreeItem(columnData, ptrNewNode);
-                ptrNewNode->m_childItems.push_back(ptrNewNodeAttr);
+                ptrNewNode->appendChild(ptrNewNodeAttr);
             }
-            parent->m_childItems.append(ptrNewNode ); // append child
+            parent->appendChild(ptrNewNode ); // append child
         }
         traverseXmlNode(domNode, ptrNewNode); // recursive function
         domNode = domNode.nextSibling();
-    }
+    }*/
     tabCount--; // decrease current tab count
 }
 
