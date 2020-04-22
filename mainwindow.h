@@ -22,12 +22,13 @@ public:
     bool openFile(const QString &fileName);
 
 protected:
-    virtual void closeEvent(QCloseEvent *pEvent);
+    void closeEvent(QCloseEvent *event);
 
 private slots:
     void updateRecentFileActions();
     void updateWindowMenu();
     void openRecentFile();
+
     XMLWindow *createXMLWindows();
 
     void on_actionAbout_triggered();
@@ -44,9 +45,13 @@ private:
     {enMaxRecentFiles = 5};
     void createActions();
     void prependToRecentFiles(const QString &fileName);
+    static bool hasRecentFiles();
     QMdiSubWindow *findXMLWindow(const QString &fileName) const;
     bool loadFile(const QString &fileName);
     XMLWindow *activeXMLWindow() const;
+
+    void readSettings();
+    void writeSettings();
 
 
 private:

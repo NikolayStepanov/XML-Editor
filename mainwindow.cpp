@@ -8,6 +8,8 @@
 #include <QFileInfo>
 #include <QMessageBox>
 #include <xmlwindow.h>
+
+
 class XMLWindow;
 namespace
 {
@@ -55,10 +57,6 @@ MainWindow::MainWindow(QWidget *parent)
     setCentralWidget(ui->mdiArea);
 
     createActions();
-
-    QSettings settings("@NikolayStepanov", "EditorXML");
-    m_listRecentFiles = settings.value("recentFiles").toStringList();
-
     updateRecentFileActions();
 
 }
@@ -80,16 +78,12 @@ bool MainWindow::openFile(const QString &fileName)
     return succeeded;
 }
 
-void MainWindow::closeEvent(QCloseEvent *pEvent)
-{
-    pEvent->accept();
-
-    QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
-    settings.setValue("recentFiles", m_listRecentFiles);
-}
-
 void MainWindow::updateRecentFileActions()
 {
+    QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
+
+    m_listRecentFiles = readRecentFiles(settings);
+
     QMutableStringListIterator i(m_listRecentFiles);
     while (i.hasNext())
         if (!QFile::exists(i.next()))
@@ -120,17 +114,18 @@ void MainWindow::updateWindowMenu()
 
     QList<QMdiSubWindow *> windows = ui->mdiArea->subWindowList();
 
-    for (int i = 0; i < windows.size(); ++i) {
+    for (int i = 0; i < windows.size(); ++i)
+    {
         QMdiSubWindow *mdiSubWindow = windows.at(i);
         XMLWindow *child = qobject_cast<XMLWindow *>(mdiSubWindow->widget());
 
         QString text;
         if (i < 9) {
             text = tr("&%1 %2").arg(i + 1)
-                               .arg(child->userFriendlyCurrentFile());
+                    .arg(child->userFriendlyCurrentFile());
         } else {
             text = tr("%1 %2").arg(i + 1)
-                              .arg(child->userFriendlyCurrentFile());
+                    .arg(child->userFriendlyCurrentFile());
         }
         QAction *action = ui->menuWindows->addAction(text, mdiSubWindow, [this, mdiSubWindow]() {
             ui->mdiArea->setActiveSubWindow(mdiSubWindow);
@@ -149,7 +144,7 @@ void MainWindow::openRecentFile()
 
 XMLWindow *MainWindow::createXMLWindows()
 {
-    XMLWindow *child = new XMLWindow;
+    XMLWindow *child = new XMLWindow(this);
     ui->mdiArea->addSubWindow(child);
 
     return child;
@@ -164,13 +159,12 @@ void MainWindow::createActions()
         m_apActionsRecent[i]->setVisible(false);
 
         connect(m_apActionsRecent[i], SIGNAL(triggered()),this, SLOT(openRecentFile()));
-
-        ui->menuFile->addAction(m_apActionsRecent[i]);
     }
 
     updateWindowMenu();
 
     connect(ui->menuWindows, &QMenu::aboutToShow, this, &MainWindow::updateWindowMenu);
+    connect(ui->menuFile, &QMenu::aboutToShow, this, &MainWindow::updateRecentFileActions);
 }
 
 void MainWindow::prependToRecentFiles(const QString &fileName)
@@ -183,6 +177,14 @@ void MainWindow::prependToRecentFiles(const QString &fileName)
     recentFiles.prepend(fileName);
     if (oldRecentFiles != recentFiles)
         writeRecentFiles(recentFiles, settings);
+}
+
+bool MainWindow::hasRecentFiles()
+{
+    QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
+    const int count = settings.beginReadArray(recentFilesKey());
+    settings.endArray();
+    return count > 0;
 }
 
 QMdiSubWindow *MainWindow::findXMLWindow(const QString &fileName) const
@@ -200,8 +202,18 @@ QMdiSubWindow *MainWindow::findXMLWindow(const QString &fileName) const
 
 bool MainWindow::loadFile(const QString &fileName)
 {
+    QFile file(fileName);
+    if (!file.open(QFile::ReadOnly | QFile::Text)) {
+        QMessageBox::warning(this, tr("XML editor"),
+                             tr("Cannot read file %1:\n%2.")
+                             .arg(QDir::toNativeSeparators(fileName),
+                                  file.errorString()));
+        return false;
+    }
+
     XMLWindow *child = createXMLWindows();
-    const bool succeeded = child->loadFile(fileName);
+    const bool succeeded = child->loadFile(&file);
+    child->setCurrentFile(fileName);
     if (succeeded)
         child->show();
     else
@@ -215,6 +227,27 @@ XMLWindow *MainWindow::activeXMLWindow() const
     if (QMdiSubWindow *activeSubWindow = ui->mdiArea->activeSubWindow())
         return qobject_cast<XMLWindow *>(activeSubWindow->widget());
     return nullptr;
+}
+
+void MainWindow::readSettings()
+{
+    QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
+    const QByteArray geometry = settings.value("geometry", QByteArray()).toByteArray();
+    if (geometry.isEmpty()) {
+        const QRect availableGeometry = screen()->availableGeometry();
+        resize(availableGeometry.width() / 3, availableGeometry.height() / 2);
+        move((availableGeometry.width() - width()) / 2,
+             (availableGeometry.height() - height()) / 2);
+    } else {
+        restoreGeometry(geometry);
+    }
+}
+
+void MainWindow::writeSettings()
+{
+    QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
+    settings.setValue("recentFiles", m_listRecentFiles);
+    settings.setValue("geometry", saveGeometry());
 }
 
 void MainWindow::on_actionAbout_triggered()
@@ -246,3 +279,17 @@ void MainWindow::on_actionSave_triggered()
     if (activeXMLWindow() && activeXMLWindow()->save())
         statusBar()->showMessage(tr("File saved"), 2000);
 }
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    event->accept();
+
+    ui->mdiArea->closeAllSubWindows();
+    if (ui->mdiArea->currentSubWindow()) {
+        event->ignore();
+    } else {
+        writeSettings();
+        event->accept();
+    }
+}
+

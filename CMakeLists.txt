@@ -11,13 +11,13 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt5 COMPONENTS Widgets LinguistTools REQUIRED)
+find_package(Qt5 COMPONENTS Widgets LinguistTools Xml REQUIRED)
 
 
 
-set ( SOURCES main.cpp mainwindow.cpp xmlwindow.cpp)
+set ( SOURCES main.cpp mainwindow.cpp xmlwindow.cpp treemodel.cpp treeitem.cpp)
 
-set ( HEADERS mainwindow.h xmlwindow.h)
+set ( HEADERS mainwindow.h xmlwindow.h treemodel.h treeitem.h)
 
 set ( UIS mainwindow.ui xmlwindow.ui)
 
@@ -48,7 +48,7 @@ set_property(DIRECTORY PROPERTY CLEAN_NO_CUSTOM TRUE)
 
 add_executable(EditorXML  ${SOURCES} ${HEADERS} ${UIS} ${RES})
 
-target_link_libraries(EditorXML PRIVATE Qt5::Widgets)
+target_link_libraries(EditorXML PRIVATE Qt5::Widgets Qt5::Xml)
 
 # Installation
 
