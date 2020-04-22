@@ -56,7 +56,11 @@ MainWindow::MainWindow(QWidget *parent)
     ui->mdiArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     setCentralWidget(ui->mdiArea);
 
+    connect(ui->mdiArea, &QMdiArea::subWindowActivated,this, &MainWindow::updateMenus);
+
     createActions();
+    updateMenus();
+    readSettings();
     updateRecentFileActions();
 
 }
@@ -140,6 +144,22 @@ void MainWindow::openRecentFile()
 {
     if (const QAction *action = qobject_cast<const QAction *>(sender()))
         openFile(action->data().toString());
+}
+
+void MainWindow::updateMenus()
+{
+    bool hasXMLWindow = (activeXMLWindow() != nullptr);
+    ui->actionSave->setEnabled(hasXMLWindow);
+    ui->actionTile->setEnabled(hasXMLWindow);
+    ui->actionCascade->setEnabled(hasXMLWindow);
+    ui->action_Close_all_windows->setEnabled(hasXMLWindow);
+}
+
+XMLWindow *MainWindow::activeXMLWindows() const
+{
+    if (QMdiSubWindow *activeSubWindow = ui->mdiArea->activeSubWindow())
+        return qobject_cast<XMLWindow*>(activeSubWindow->widget());
+    return nullptr;
 }
 
 XMLWindow *MainWindow::createXMLWindows()

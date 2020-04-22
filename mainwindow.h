@@ -28,6 +28,9 @@ private slots:
     void updateRecentFileActions();
     void updateWindowMenu();
     void openRecentFile();
+    void updateMenus();
+
+    XMLWindow *activeXMLWindows() const;
 
     XMLWindow *createXMLWindows();
 
