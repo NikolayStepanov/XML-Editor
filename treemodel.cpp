@@ -3,8 +3,9 @@
 TreeModel::TreeModel(const QDomDocument &doc, QObject *parent)
     : QAbstractItemModel(parent)
 {
+    domDocument = doc;
     //Создали корневой элемент
-    rootItem = new TreeItem({tr("Component"), tr("Value")});
+    rootItem = new TreeItem({tr("Component"),tr("Value")},domDocument);
     setupModelData(doc, rootItem);
 }
 
@@ -171,14 +172,13 @@ void TreeModel::traverseXmlNode(const QDomNode& node, TreeItem* parent)
     {
         TreeItem* ptrNewNode = NULL;
         QVector <QVariant> columnData;
-
         switch(domNode.nodeType())
         {
         case QDomNode::ElementNode:{
             QDomElement element = domNode.toElement();
             columnData.push_back(element.tagName());
-            ptrNewNode = new TreeItem(columnData, parent);
-
+            ptrNewNode = new TreeItem(columnData,domNode,parent);
+            columnData.push_back(QVariant());
             QDomNamedNodeMap map = element.attributes();
             for (int id = 0 ; id < map.size() ; id++ )
             {
@@ -188,16 +188,16 @@ void TreeModel::traverseXmlNode(const QDomNode& node, TreeItem* parent)
                 columnData.push_back(node.nodeName());
                 columnData.push_back(node.nodeValue());
 
-                TreeItem* ptrNewNodeAttr = new TreeItem(columnData, ptrNewNode);
+                TreeItem* ptrNewNodeAttr = new TreeItem(columnData, node, ptrNewNode);
                 ptrNewNode->appendChild(ptrNewNodeAttr);
             }
-            parent->appendChild(ptrNewNode );
+            parent->appendChild(ptrNewNode);
         }break;
         case QDomNode::AttributeNode:{
             QDomAttr attr = domNode.toAttr();
             columnData.push_back(attr.name());
             columnData.push_back(attr.value());
-            ptrNewNode = new TreeItem(columnData, parent);
+            ptrNewNode = new TreeItem(columnData, domNode, parent);
             parent->appendChild(ptrNewNode );
         }break;
         case QDomNode::CDATASectionNode:{}break;
@@ -208,14 +208,14 @@ void TreeModel::traverseXmlNode(const QDomNode& node, TreeItem* parent)
             QDomText text = domNode.toText();
             columnData.push_back("#text");
             columnData.push_back(text.data());
-            ptrNewNode = new TreeItem(columnData, parent);
+            ptrNewNode = new TreeItem(columnData, domNode, parent);
             parent->appendChild(ptrNewNode );
         }break;
         case QDomNode::CommentNode:{
             QDomComment comment = domNode.toComment();
             columnData.push_back("#comment");
             columnData.push_back(comment.data());
-            ptrNewNode = new TreeItem(columnData, parent);
+            ptrNewNode = new TreeItem(columnData,domNode, parent);
             parent->appendChild(ptrNewNode );
         }break;
         case QDomNode::DocumentNode: {}break;
@@ -225,6 +225,9 @@ void TreeModel::traverseXmlNode(const QDomNode& node, TreeItem* parent)
         case QDomNode::BaseNode: {}break;
         case QDomNode::CharacterDataNode: {}break;
         }
+
+        columnData.push_back(nodeTypeName(domNode.nodeType()));
+
         traverseXmlNode(domNode, ptrNewNode); // recursive function
         domNode = domNode.nextSibling();
     }

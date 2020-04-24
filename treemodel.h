@@ -51,7 +51,7 @@ public:
     //вставка и удаление столбцов и строк
 
     void traverseXmlNode(const QDomNode& node, TreeItem* parent);
-
+    QDomDocument getDomDocument(){return domDocument;};
 private:
     void setupModelData(const QDomDocument &domDocument, TreeItem *parent);
     //внутренний метод для установки данных модели
@@ -60,6 +60,8 @@ private:
     //внутренний метод для получения элемента
 
     TreeItem *rootItem; //ссылка на корневой узел
+
+    QDomDocument domDocument;
 
     int tabCount; // level
 };

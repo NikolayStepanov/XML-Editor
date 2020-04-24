@@ -3,11 +3,12 @@
 #include <QList>
 #include <QVector>
 #include <QVariant>
+#include <QDomNode>
 
 class TreeItem
 {
 public:
-    explicit TreeItem (const QVector<QVariant> &data,TreeItem *parentItem = nullptr); //Конструктор узла дерева
+    explicit TreeItem (const QVector<QVariant> &data,QDomNode &node,TreeItem *parentItem = nullptr); //Конструктор узла дерева
     ~TreeItem();               //...и деструктор
 
     void appendChild(TreeItem *child); //Добавить узел-потомок
@@ -24,9 +25,14 @@ public:
     bool setData(int column, const QVariant &value); //Установить данные
 
 private:
+    bool setNameNode(const QVariant &value);
+    bool setValueNode(const QVariant &value);
+
+private:
     QList <TreeItem*> m_childItems; //Список дочерних элементов
     QVector <QVariant> m_itemData; //Список данных текущего узла
     TreeItem *m_parentItem; //Ссылка на родительский узел
+    QDomNode m_node;
 };
 
 #endif // TREEITEM_H

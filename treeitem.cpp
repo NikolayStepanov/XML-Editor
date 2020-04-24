@@ -1,8 +1,9 @@
 #include "treeitem.h"
 
-TreeItem::TreeItem (const QVector<QVariant> &data,TreeItem *parent) {
+TreeItem::TreeItem (const QVector<QVariant> &data,QDomNode &node,TreeItem *parent) {
     m_itemData = data;
     m_parentItem = parent;
+    m_node = node;
 }
 
 TreeItem::~TreeItem()
@@ -55,12 +56,12 @@ int TreeItem::childNumber() const {
 */
 
 bool TreeItem::insertChildren(int position, int count, int columns) {
-    if (position < 0 || position > m_childItems.size()) return false;
+    /*if (position < 0 || position > m_childItems.size()) return false;
     for (int row = 0; row < count; ++row) {
         QVector<QVariant> data(columns);
         TreeItem *item = new TreeItem(data, this);
         m_childItems.insert(position, item);
-    }
+    }*/
     return true;
 }
 
@@ -86,7 +87,105 @@ bool TreeItem::removeColumns(int position, int columns) {
 
 //А этот метод ставит значение value в столбец column элемента:
 bool TreeItem::setData(int column, const QVariant &value) {
+    bool isSuccess = false;
     if (column < 0 || column >= m_itemData.size()) return false;
-    m_itemData[column] = value;
-    return true;
+
+    if(column==0)
+    {
+        isSuccess=setNameNode(value);
+    }
+    else
+    {
+        isSuccess=setValueNode(value);
+    }
+
+    if(isSuccess)
+    {
+        m_itemData[column] = value;
+    }
+
+    return isSuccess;
+}
+
+bool TreeItem::setNameNode(const QVariant &value)
+{
+    bool needChangeName = false;
+
+    switch(m_node.nodeType())
+    {
+    case QDomNode::ElementNode:{
+        m_node.toElement().setTagName(value.toString());
+        needChangeName = true;
+    }break;
+    case QDomNode::AttributeNode:{
+        QString nameNode = value.toString();
+        QDomElement element = m_parentItem->m_node.toElement();
+        element.setAttribute(nameNode,m_node.nodeValue());
+        element.removeAttribute(m_node.nodeName());
+        m_node = element.attributeNode(nameNode);
+        needChangeName = true;
+    }break;
+    case QDomNode::CDATASectionNode:{
+    }break;
+    case QDomNode::EntityReferenceNode:{
+    }break;
+    case QDomNode::EntityNode:{
+    }break;
+    case QDomNode::ProcessingInstructionNode:{
+
+    }break;
+    case QDomNode::TextNode:{
+
+    }break;
+    case QDomNode::CommentNode:{
+
+    }break;
+    case QDomNode::DocumentNode: {}break;
+    case QDomNode::DocumentTypeNode: {}break;
+    case QDomNode::DocumentFragmentNode: {}break;
+    case QDomNode::NotationNode: {}break;
+    case QDomNode::BaseNode: {}break;
+    case QDomNode::CharacterDataNode: {}break;
+    }
+    return needChangeName;
+}
+
+bool TreeItem::setValueNode(const QVariant &value)
+{
+    bool needChangeValue = false;
+    switch(m_node.nodeType())
+    {
+    case QDomNode::ElementNode:{
+        m_node.setNodeValue(value.toString());
+        needChangeValue = true;
+    }break;
+    case QDomNode::AttributeNode:{
+        m_node.setNodeValue(value.toString());
+        needChangeValue = true;
+    }break;
+    case QDomNode::CDATASectionNode:{
+    }break;
+    case QDomNode::EntityReferenceNode:{
+    }break;
+    case QDomNode::EntityNode:{
+    }break;
+    case QDomNode::ProcessingInstructionNode:{
+
+    }break;
+    case QDomNode::TextNode:{
+        m_node.setNodeValue(value.toString());
+        needChangeValue = true;
+    }break;
+    case QDomNode::CommentNode:{
+        m_node.setNodeValue(value.toString());
+        needChangeValue = true;
+    }break;
+    case QDomNode::DocumentNode: {}break;
+    case QDomNode::DocumentTypeNode: {}break;
+    case QDomNode::DocumentFragmentNode: {}break;
+    case QDomNode::NotationNode: {}break;
+    case QDomNode::BaseNode: {}break;
+    case QDomNode::CharacterDataNode: {}break;
+    }
+    return needChangeValue;
 }

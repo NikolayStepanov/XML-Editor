@@ -27,7 +27,8 @@ bool XMLWindow::write(QIODevice *device) const
     const int IndentSize = 4;
 
     QTextStream out(device);
-    domDocument.save(out, IndentSize);
+    model->getDomDocument().save(out, IndentSize);
+    //domDocument.save(out, IndentSize);
     return true;
 }
 
