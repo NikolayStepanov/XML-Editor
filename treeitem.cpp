@@ -1,6 +1,8 @@
 #include "treeitem.h"
+#include <QString>
 
-TreeItem::TreeItem (const QVector<QVariant> &data,QDomNode &node,TreeItem *parent) {
+TreeItem::TreeItem (const QVector<QVariant> &data,QDomNode &node,TreeItem *parent)
+{
     m_itemData = data;
     m_parentItem = parent;
     m_node = node;
@@ -12,12 +14,19 @@ TreeItem::~TreeItem()
 }
 
 
-void TreeItem::appendChild(TreeItem *item) {
+void TreeItem::appendChild(TreeItem *item)
+{
     m_childItems.append(item);
     //Добавить узел в список потомков
 }
 
-TreeItem *TreeItem::child (int row) {
+void TreeItem::insertChild(int index, TreeItem *child)
+{
+    m_childItems.insert(index,child);
+}
+
+TreeItem *TreeItem::child (int row)
+{
     return m_childItems.value(row);
     //По номеру строки выбрать нужного потомка из списка
 }
@@ -44,7 +53,8 @@ TreeItem *TreeItem::parentItem() {
     return m_parentItem; //Вернуть ссылку на родителя
 }
 
-int TreeItem::childNumber() const {
+int TreeItem::childNumber() const
+{
     //Если есть родитель - найти свой номер в списке его потомков
     if (m_parentItem) return m_parentItem->m_childItems.indexOf(const_cast<TreeItem*>(this));
     return 0; //Иначе вернуть 0*/
@@ -55,33 +65,70 @@ int TreeItem::childNumber() const {
  предназначенными для хранения данных
 */
 
-bool TreeItem::insertChildren(int position, int count, int columns) {
-    /*if (position < 0 || position > m_childItems.size()) return false;
+bool TreeItem::insertChildren(int position, int count, int columns)
+{
+    if (position < 0 || position > m_childItems.size()) return false;
     for (int row = 0; row < count; ++row) {
         QVector<QVariant> data(columns);
-        TreeItem *item = new TreeItem(data, this);
+        static int numberElement = 1;
+        data[0]="element"+QString::number(numberElement);
+        data[1]="";
+        QDomElement node;
+        TreeItem *item = new TreeItem(data,node,this);
         m_childItems.insert(position, item);
-    }*/
+    }
     return true;
 }
 
 bool TreeItem::insertColumns(int position, int columns) {
     if (position < 0 || position > m_itemData.size()) return false;
-    for (int column = 0; column < columns; ++column) m_itemData.insert(position, QVariant());
+    for (int column = 0; column < columns; ++column)
+        m_itemData.insert(position, QVariant());
     foreach (TreeItem *child, m_childItems) child->insertColumns(position, columns);
     return true;
 }
 
 bool TreeItem::removeChildren(int position, int count) {
-    if (position < 0 || position + count > m_childItems.size()) return false;
-    for (int row = 0; row < count; ++row) delete m_childItems.takeAt(position);
-    return true;
-}
+    if (position < 0 || position + count > m_childItems.size())
+    {
+        return false;
+    }
 
-bool TreeItem::removeColumns(int position, int columns) {
-    if (position < 0 || position + columns > m_itemData.size()) return false;
-    for (int column = 0; column < columns; ++column) m_itemData.removeAt(position);
-    foreach (TreeItem *child, m_childItems) child->removeColumns(position, columns);
+    for (int row = 0; row < count; ++row)
+    {
+        QDomNode remNode = m_childItems.takeAt(position)->getDomNode();
+
+        switch(remNode.nodeType())
+        {
+        case QDomNode::ElementNode:{
+            m_node.removeChild(remNode);
+        }break;
+        case QDomNode::AttributeNode:{
+            m_node.toElement().removeAttributeNode(remNode.toAttr());
+        }break;
+        case QDomNode::CDATASectionNode:{
+        }break;
+        case QDomNode::EntityReferenceNode:{
+        }break;
+        case QDomNode::EntityNode:{
+        }break;
+        case QDomNode::ProcessingInstructionNode:{
+
+        }break;
+        case QDomNode::TextNode:{
+            m_node.removeChild(remNode);
+            }break;
+        case QDomNode::CommentNode:{
+            m_node.removeChild(remNode);
+        }break;
+        case QDomNode::DocumentNode: {}break;
+        case QDomNode::DocumentTypeNode: {}break;
+        case QDomNode::DocumentFragmentNode: {}break;
+        case QDomNode::NotationNode: {}break;
+        case QDomNode::BaseNode: {}break;
+        case QDomNode::CharacterDataNode: {}break;
+        }
+    }
     return true;
 }
 
@@ -105,6 +152,16 @@ bool TreeItem::setData(int column, const QVariant &value) {
     }
 
     return isSuccess;
+}
+
+QDomNode &TreeItem::getDomNode()
+{
+    return m_node;
+}
+
+void TreeItem::setDomNode(QDomNode &node)
+{
+    m_node=node.toElement();
 }
 
 bool TreeItem::setNameNode(const QVariant &value)
@@ -156,8 +213,8 @@ bool TreeItem::setValueNode(const QVariant &value)
     switch(m_node.nodeType())
     {
     case QDomNode::ElementNode:{
-        m_node.setNodeValue(value.toString());
-        needChangeValue = true;
+        //m_node.setNodeValue(value.toString());
+        //needChangeValue = true;
     }break;
     case QDomNode::AttributeNode:{
         m_node.setNodeValue(value.toString());

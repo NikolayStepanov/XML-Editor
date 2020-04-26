@@ -145,22 +145,100 @@ bool TreeModel::insertRows(int position, int rows, const QModelIndex &parent)
 
 bool TreeModel::removeColumns(int position, int columns, const QModelIndex &parent)
 {
-    bool success;
-    beginRemoveColumns(parent, position, position + columns - 1);
-    success = rootItem->removeColumns(position, columns);
-    endRemoveColumns();
-    if (rootItem->columnCount() == 0) removeRows(0, rowCount());
-    return success;
+    return true;
 }
 
 bool TreeModel::removeRows(int position, int rows, const QModelIndex &parent)
 {
     TreeItem *parentItem = getItem(parent);
     bool success = true;
-    beginRemoveRows(parent, position, position + rows - 1);
+    beginRemoveRows(parent, position, position + rows-1);
     success = parentItem->removeChildren(position, rows);
     endRemoveRows();
     return success;
+}
+
+bool TreeModel::createElement(const QModelIndex &index)
+{
+    if(index.row()!=0)
+    {
+        QModelIndex siblingIndex=index.siblingAtRow(index.row()-1);
+
+        TreeItem * item = getItem(index);
+        TreeItem * siblingItem = getItem(siblingIndex);
+
+        QDomElement element = domDocument.createElement("element");
+        QDomElement siblingNode = siblingItem->getDomNode().toElement();
+        QDomNode parentNode = item->parentItem()->getDomNode();
+        parentNode.insertAfter(element,siblingNode);
+
+        QDomNode itemNode = item->getDomNode();
+        itemNode =element;
+    }
+    return true;
+}
+
+bool TreeModel::createElement(const QModelIndex &index, TreeModel::wayInsertItem wayInsert)
+{
+    switch (wayInsert) {
+    case Before:{
+        beginInsertRows(index.parent(), index.row(), index.row());
+
+        TreeItem * item = getItem(index);
+        TreeItem * parentItem = item->parentItem();
+
+        QVector<QVariant> data(2);
+
+        data[0]="element";
+        data[1]="";
+
+        QDomElement element = domDocument.createElement(data[0].toString());
+        QDomNode parentNode = parentItem->getDomNode();
+        parentNode.insertBefore(element,item->getDomNode());
+
+        TreeItem * newItem= new TreeItem(data,element,parentItem);
+        parentItem->insertChild(index.row(),newItem);
+
+        endInsertRows();
+    }break;
+    case After:{
+        beginInsertRows(index.parent(), index.row()+1, index.row()+1);
+
+        TreeItem * item = getItem(index);
+        TreeItem * parentItem = item->parentItem();
+
+        QVector<QVariant> data(2);
+        data[0]="element";
+        data[1]="";
+
+        QDomElement element = domDocument.createElement(data[0].toString());
+        QDomNode parentNode = parentItem->getDomNode();
+        parentNode.insertAfter(element,item->getDomNode());
+
+        TreeItem * newItem= new TreeItem(data,element,parentItem);
+        parentItem->insertChild(index.row()+1,newItem);
+        endInsertRows();
+    }break;
+    case Child:{
+        beginInsertRows(index,0,0);
+
+        TreeItem * item = getItem(index);
+
+        QVector<QVariant> data(2);
+        data[0]="element";
+        data[1]="";
+
+        QDomElement element = domDocument.createElement(data[0].toString());
+        QDomNode itemNode = item->getDomNode();
+        if(itemNode.isElement())
+        {
+            itemNode.appendChild(element);
+            TreeItem * newItem= new TreeItem(data,element,item);
+            item->appendChild(newItem);
+        }
+        endInsertRows();
+    }break;
+    }
 }
 
 void TreeModel::traverseXmlNode(const QDomNode& node, TreeItem* parent)

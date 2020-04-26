@@ -14,6 +14,9 @@ class TreeModel: public QAbstractItemModel
 {
     Q_OBJECT
 public:
+
+    enum wayInsertItem {Before=1,After,Child};
+
     TreeModel(const QDomDocument &doc, QObject *parent = 0);
     ~TreeModel();
     QVariant data(const QModelIndex &index, int role) const override;
@@ -50,9 +53,13 @@ public:
     bool removeRows(int position, int rows, const QModelIndex &parent = QModelIndex()) override;
     //вставка и удаление столбцов и строк
 
+    bool createElement(const QModelIndex &index);
+    bool createElement(const QModelIndex &index,wayInsertItem);
+
     void traverseXmlNode(const QDomNode& node, TreeItem* parent);
     QDomDocument getDomDocument(){return domDocument;};
 private:
+
     void setupModelData(const QDomDocument &domDocument, TreeItem *parent);
     //внутренний метод для установки данных модели
 

@@ -8,10 +8,11 @@
 class TreeItem
 {
 public:
-    explicit TreeItem (const QVector<QVariant> &data,QDomNode &node,TreeItem *parentItem = nullptr); //Конструктор узла дерева
+    explicit TreeItem (const QVector<QVariant> &data, QDomNode &node, TreeItem *parentItem = nullptr); //Конструктор узла дерева
     ~TreeItem();               //...и деструктор
 
     void appendChild(TreeItem *child); //Добавить узел-потомок
+    void insertChild(int index, TreeItem* child);
     TreeItem *child(int row); //Вернуть дочерний элемент
     int childCount() const; //Количество дочерних элементов
     int columnCount() const; //Вернуть количество столбцов элемента
@@ -21,8 +22,9 @@ public:
     bool insertChildren(int position, int count, int columns); //Вставить потомков (строки)
     bool insertColumns(int position, int columns); //Вставить столбцы
     bool removeChildren(int position, int count);  //Удалить потомков
-    bool removeColumns(int position, int columns); //Удалить столбцы
     bool setData(int column, const QVariant &value); //Установить данные
+    QDomNode& getDomNode();
+    void setDomNode(QDomNode &node);
 
 private:
     bool setNameNode(const QVariant &value);

@@ -32,6 +32,27 @@ public:
     void setCurrentFile(const QString &fileName);
     void refresh();
 
+private slots:
+    void slotCustomMenuRequested(QPoint pos);
+    void slotRemoveRecord();
+    void slotCreateElement();
+
+    void slotCreateElementBefore();
+    void slotCreateElementAfter();
+    void slotCreateElementChild();
+
+    void slotCreateAttributeBefore();
+    void slotCreateAttributeAfter();
+    void slotCreateAttributeChild();
+
+    void slotCreateTextBefore();
+    void slotCreateTextAfter();
+    void slotCreateTextChild();
+
+    void slotCreateCommentBefore();
+    void slotCreateCommentAfter();
+    void slotCreateCommentChild();
+
 private:
     QString strippedName(const QString &fullFileName);
 
