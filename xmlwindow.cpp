@@ -171,17 +171,12 @@ void XMLWindow::slotCustomMenuRequested(QPoint pos)
     QAction* actionCommentChild = submenuComment->addAction(tr("Child"));
 
     QAction * deleteElement = new QAction(tr("Delete"), this);
-    QAction * createElement = new QAction(tr("Create Element"),this);
-    QAction * createAttr = new QAction(tr("Create Attribute"),this);
-    QAction * createText = new QAction(tr("Create Text"),this);
-    QAction * createComment = new QAction(tr("Create Comment"),this);
 
     /* Подключаем СЛОТы обработчики для действий контекстного меню */
     connect(deleteElement, SIGNAL(triggered()), this, SLOT(slotRemoveRecord())); // Обработчик удаления записи
-    connect(createElement, SIGNAL(triggered()), this, SLOT(slotCreateElement()));
 
     connect(actionElementBefore, SIGNAL(triggered()),this, SLOT(slotCreateElementBefore()));
-    connect(actionElementAfter, SIGNAL(triggered()),this, SLOT(slotCreateElementAfter()));
+    connect(actionElementAfter,SIGNAL(triggered()),this, SLOT(slotCreateElementAfter()));
     connect(actionElementChild, SIGNAL(triggered()),this, SLOT(slotCreateElementChild()));
 
     connect(actionAttributeBefore, SIGNAL(triggered()),this, SLOT(slotCreateAttributeBefore()));
@@ -199,10 +194,6 @@ void XMLWindow::slotCustomMenuRequested(QPoint pos)
 
     /* Устанавливаем действия в меню */
     menu->addAction(deleteElement);
-    menu->addAction(createElement);
-    menu->addAction(createAttr);
-    menu->addAction(createText);
-    menu->addAction(createComment);
 
     /* Вызываем контекстное меню */
     menu->popup(ui->treeView->viewport()->mapToGlobal(pos));
@@ -236,18 +227,6 @@ void XMLWindow::slotRemoveRecord()
             ui->treeView->setCurrentIndex(model->index(-1, -1));
 
         }
-    }
-}
-
-void XMLWindow::slotCreateElement()
-{
-    QModelIndex index = ui->treeView->selectionModel()->currentIndex();
-    if(index.row() >= 0){
-        if(!model->insertRow(index.row(),index.parent())){
-            QMessageBox::warning(this,tr("Notification"),
-                                 tr("Failed to insert entry.\n"));
-        }
-        ui->treeView->setCurrentIndex(model->index(-1, -1));
     }
 }
 

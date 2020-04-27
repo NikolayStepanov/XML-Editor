@@ -35,7 +35,6 @@ public:
 private slots:
     void slotCustomMenuRequested(QPoint pos);
     void slotRemoveRecord();
-    void slotCreateElement();
 
     void slotCreateElementBefore();
     void slotCreateElementAfter();
