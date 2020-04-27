@@ -117,7 +117,7 @@ bool TreeItem::removeChildren(int position, int count) {
         }break;
         case QDomNode::TextNode:{
             m_node.removeChild(remNode);
-            }break;
+        }break;
         case QDomNode::CommentNode:{
             m_node.removeChild(remNode);
         }break;

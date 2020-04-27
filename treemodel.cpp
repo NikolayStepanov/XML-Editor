@@ -241,6 +241,101 @@ bool TreeModel::createElement(const QModelIndex &index, TreeModel::wayInsertItem
     }
 }
 
+bool TreeModel::createAttribute(const QModelIndex &index, TreeModel::wayInsertItem wayInsert)
+{
+    switch (wayInsert) {
+    case Before:{
+        TreeItem * item = getItem(index);
+        TreeItem * parentItem = item->parentItem();
+
+        QVector<QVariant> data(2);
+
+        data[0]="attribute";
+        data[1]="value";
+
+        QDomAttr attr = domDocument.createAttribute(data[0].toString());
+        attr.setValue(data[1].toString());
+
+        QDomNode parentNode = parentItem->getDomNode();
+        QDomNode itemNode = item->getDomNode();
+        if(itemNode.isAttr())
+        {
+            beginInsertRows(index.parent(), index.row(), index.row());
+            parentNode.toElement().insertBefore(attr,itemNode);
+            TreeItem * newItem= new TreeItem(data,attr,parentItem);
+            parentItem->insertChild(index.row(),newItem);
+            endInsertRows();
+        }
+        else{
+
+            QDomNamedNodeMap attributesParent = parentNode.attributes();
+            beginInsertRows(index.parent(), attributesParent.size(), attributesParent.size());
+            TreeItem * newItem= new TreeItem(data,attr,parentItem);
+            parentItem->insertChild(attributesParent.size(),newItem);
+            parentNode.toElement().setAttributeNode(attr);
+            endInsertRows();
+        }
+
+    }break;
+    case After:{
+        TreeItem * item = getItem(index);
+        TreeItem * parentItem = item->parentItem();
+
+        QVector<QVariant> data(2);
+
+        data[0]="attribute";
+        data[1]="value";
+
+        QDomAttr attr = domDocument.createAttribute(data[0].toString());
+        attr.setValue(data[1].toString());
+
+        QDomNode parentNode = parentItem->getDomNode();
+        QDomNode itemNode = item->getDomNode();
+        if(itemNode.isAttr())
+        {
+            beginInsertRows(index.parent(), index.row(), index.row());
+            parentNode.toElement().insertBefore(attr,itemNode);
+            TreeItem * newItem= new TreeItem(data,attr,parentItem);
+            parentItem->insertChild(index.row(),newItem);
+            endInsertRows();
+        }
+        else{
+
+            QDomNamedNodeMap attributesParent = parentNode.attributes();
+            beginInsertRows(index.parent(), attributesParent.size(), attributesParent.size());
+            TreeItem * newItem= new TreeItem(data,attr,parentItem);
+            parentItem->insertChild(attributesParent.size(),newItem);
+            parentNode.toElement().setAttributeNode(attr);
+            endInsertRows();
+        }
+    }break;
+    case Child:{
+        TreeItem * item = getItem(index);
+
+        QVector<QVariant> data(2);
+
+        data[0]="attribute";
+        data[1]="value";
+
+        QDomAttr attr = domDocument.createAttribute(data[0].toString());
+        attr.setValue(data[1].toString());
+
+        QDomNode itemNode = item->getDomNode();
+        if(itemNode.isElement())
+        {
+
+            QDomNamedNodeMap attributesItem = itemNode.attributes();
+            beginInsertRows(index,attributesItem.size(),attributesItem.size());
+            TreeItem * newItem= new TreeItem(data,attr,item);
+            item->insertChild(attributesItem.size(),newItem);
+            itemNode.toElement().setAttributeNode(attr);
+            endInsertRows();
+        }
+
+    }break;
+    }
+}
+
 void TreeModel::traverseXmlNode(const QDomNode& node, TreeItem* parent)
 {
     QDomNode domNode = node.firstChild();

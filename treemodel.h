@@ -55,6 +55,7 @@ public:
 
     bool createElement(const QModelIndex &index);
     bool createElement(const QModelIndex &index,wayInsertItem);
+    bool createAttribute(const QModelIndex &index,wayInsertItem);
 
     void traverseXmlNode(const QDomNode& node, TreeItem* parent);
     QDomDocument getDomDocument(){return domDocument;};

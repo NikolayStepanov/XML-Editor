@@ -9,7 +9,7 @@ class TreeItem
 {
 public:
     explicit TreeItem (const QVector<QVariant> &data, QDomNode &node, TreeItem *parentItem = nullptr); //Конструктор узла дерева
-    ~TreeItem();               //...и деструктор
+    ~TreeItem();
 
     void appendChild(TreeItem *child); //Добавить узел-потомок
     void insertChild(int index, TreeItem* child);

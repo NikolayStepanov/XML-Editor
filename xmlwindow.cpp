@@ -243,9 +243,6 @@ void XMLWindow::slotCreateElement()
 {
     QModelIndex index = ui->treeView->selectionModel()->currentIndex();
     if(index.row() >= 0){
-        /* В противном случае производим удаление записи.
-            * При успешном удалении обновляем таблицу.
-            * */
         if(!model->insertRow(index.row(),index.parent())){
             QMessageBox::warning(this,tr("Notification"),
                                  tr("Failed to insert entry.\n"));
@@ -258,10 +255,6 @@ void XMLWindow::slotCreateElementBefore()
 {
     QModelIndex index = ui->treeView->selectionModel()->currentIndex();
     if(index.row() >= 0){
-        /*if(!model->insertRow(index.row(),index.parent())){
-            QMessageBox::warning(this,tr("Notification"),
-                                 tr("Failed to insert entry.\n"));
-        }*/
         model->createElement(index,TreeModel::Before);
     }
     ui->treeView->setCurrentIndex(index.siblingAtRow(index.row()-1));
@@ -287,17 +280,27 @@ void XMLWindow::slotCreateElementChild()
 
 void XMLWindow::slotCreateAttributeBefore()
 {
-
+    QModelIndex index = ui->treeView->selectionModel()->currentIndex();
+    if(index.row() >= 0){
+        model->createAttribute(index,TreeModel::Before);
+    }
 }
 
 void XMLWindow::slotCreateAttributeAfter()
 {
-
+    QModelIndex index = ui->treeView->selectionModel()->currentIndex();
+    if(index.row() >= 0){
+        model->createAttribute(index,TreeModel::After);
+    }
 }
 
 void XMLWindow::slotCreateAttributeChild()
 {
-
+    QModelIndex index = ui->treeView->selectionModel()->currentIndex();
+    if(index.row() >= 0){
+        model->createAttribute(index,TreeModel::Child);
+    }
+    ui->treeView->setCurrentIndex(index.child(0,0));
 }
 
 void XMLWindow::slotCreateTextBefore()
