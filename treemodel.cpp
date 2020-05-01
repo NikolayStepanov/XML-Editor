@@ -115,7 +115,8 @@ bool TreeModel::setData(const QModelIndex &index, const QVariant &value, int rol
 }
 
 bool TreeModel::setHeaderData(int section, Qt::Orientation orientation,
-                              const QVariant &value, int role) {
+                              const QVariant &value, int role)
+{
     if (role != Qt::EditRole || orientation != Qt::Horizontal) return false;
     bool result = rootItem->setData(section, value);
     if (result) {
@@ -404,37 +405,6 @@ void TreeModel::traverseXmlNode(const QDomNode& node, TreeItem* parent)
         traverseXmlNode(domNode, ptrNewNode); // recursive function
         domNode = domNode.nextSibling();
     }
-    /* while(!(domNode.isNull()))
-    {
-        TreeItem* ptrNewNode = NULL;
-
-        if(domNode.isElement())
-        {
-            domElement = domNode.toElement();
-            if ( domElement.isNull() )
-                continue;
-            QVector <QVariant> columnData;
-            columnData.push_back(domElement.tagName());
-            ptrNewNode = new TreeItem(columnData, parent);// set parent
-
-            // attribute
-            QDomNamedNodeMap map = domElement.attributes();
-            for (int id = 0 ; id < map.size() ; id++ )
-            {
-                QDomNode node = map.item( id );
-                QVector <QVariant> columnData;
-
-                columnData.push_back(node.nodeName());
-                columnData.push_back(node.nodeValue());
-
-                TreeItem* ptrNewNodeAttr = new TreeItem(columnData, ptrNewNode);
-                ptrNewNode->appendChild(ptrNewNodeAttr);
-            }
-            parent->appendChild(ptrNewNode ); // append child
-        }
-        traverseXmlNode(domNode, ptrNewNode); // recursive function
-        domNode = domNode.nextSibling();
-    }*/
     tabCount--; // decrease current tab count
 }
 

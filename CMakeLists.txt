@@ -46,7 +46,7 @@ endif()
 add_custom_target(translations DEPENDS ${QM_FILES})
 set_property(DIRECTORY PROPERTY CLEAN_NO_CUSTOM TRUE)
 
-add_executable(EditorXML  ${SOURCES} ${HEADERS} ${UIS} ${RES})
+add_executable(EditorXML  ${SOURCES} ${HEADERS} ${UIS} ${RES} ${FILES_TO_TRANSLATE})
 
 target_link_libraries(EditorXML PRIVATE Qt5::Widgets Qt5::Xml)
 
